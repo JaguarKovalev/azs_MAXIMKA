@@ -1,0 +1,28 @@
+{% extends "azs_app/base.html" %}
+
+{% block title %}Статистика{% endblock %}
+
+{% block content %}
+    <h1>Статистика</h1>
+
+    <form method="GET">
+        {{ form.as_p }}
+        <button type="submit">Применить фильтр</button>
+    </form>
+
+    <h2>1. Количество продаж по месяцам</h2>
+    {{ sales_over_time_plot|safe }}
+
+    <h2>2. Объем продаж по видам топлива</h2>
+    {{ fuel_sales_by_type_plot|safe }}
+
+    <h2>3. Объем продаж по заправочным станциям</h2>
+    {{ sales_by_station_plot|safe }}
+
+    <h2>4. Суммарная выручка по видам топлива</h2>
+    {{ revenue_by_fuel_type_plot|safe }}
+
+    <h2>5. Топ-5 клиентов по объему покупок</h2>
+    {{ top_customers_by_volume_plot|safe }}
+
+{% endblock %}

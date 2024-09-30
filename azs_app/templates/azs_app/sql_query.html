@@ -1,0 +1,34 @@
+{% extends "azs_app/base.html" %}
+
+{% block title %}Execute SQL Query{% endblock %}
+
+{% block content %}
+    <h1>Execute SQL Query</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Execute</button>
+    </form>
+
+    {% if error_message %}
+        <p style="color: red;">Error: {{ error_message }}</p>
+    {% endif %}
+
+    {% if columns and results %}
+        <h2>Results:</h2>
+        <table border="1">
+            <tr>
+                {% for column in columns %}
+                    <th>{{ column }}</th>
+                {% endfor %}
+            </tr>
+            {% for row in results %}
+                <tr>
+                    {% for value in row %}
+                        <td>{{ value }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+{% endblock %}

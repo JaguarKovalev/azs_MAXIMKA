@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "azs-by"
+version = "0.1.0"
+description = "Приложение \"АЗС Беларуси\""
+authors = ["Максим Ахтырский"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+django = "^5.1"
+psycopg2-binary = "^2.9.9"
+django-plotly-dash = "^2.3.1"
+plotly = "^5.23.0"
+pandas = "^2.2.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

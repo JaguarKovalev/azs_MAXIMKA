@@ -1,0 +1,133 @@
+{% extends "azs_app/base.html" %}
+
+{% block title %}Таблицы данных{% endblock %}
+
+{% block content %}
+    <h1>Таблицы данных</h1>
+
+    <h2>Компании</h2>
+    <table>
+        <tr>
+            <th>Название</th>
+            <th>Адрес</th>
+            <th>Телефон</th>
+        </tr>
+        {% for company in companies %}
+        <tr>
+            <td>{{ company.name }}</td>
+            <td>{{ company.address }}</td>
+            <td>{{ company.telephone }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Покупатели</h2>
+    <table>
+        <tr>
+            <th>Имя</th>
+            <th>Телефон</th>
+            <th>Адрес</th>
+            <th>Номер карты</th>
+            <th>Номер транспорта</th>
+        </tr>
+        {% for customer in customers %}
+        <tr>
+            <td>{{ customer.full_name }}</td>
+            <td>{{ customer.telephone }}</td>
+            <td>{{ customer.address }}</td>
+            <td>{{ customer.card_number }}</td>
+            <td>{{ customer.transport_number }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>АЗС</h2>
+    <table>
+        <tr>
+            <th>Название</th>
+            <th>Адрес</th>
+            <th>Компания</th>
+        </tr>
+        {% for gas_station in gas_stations %}
+        <tr>
+            <td>{{ gas_station.name }}</td>
+            <td>{{ gas_station.address }}</td>
+            <td>{{ gas_station.company.name }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Топливо</h2>
+    <table>
+        <tr>
+            <th>АЗС</th>
+            <th>Тип топлива</th>
+            <th>Текущий объем</th>
+            <th>Цена</th>
+            <th>Вместимость</th>
+            <th>Минимальный запас</th>
+        </tr>
+        {% for fuel in fuels %}
+        <tr>
+            <td>{{ fuel.gas_station.name }}</td>
+            <td>{{ fuel.fuel_type.type }}</td>
+            <td>{{ fuel.current_quantity }}</td>
+            <td>{{ fuel.price }}</td>
+            <td>{{ fuel.capacity }}</td>
+            <td>{{ fuel.minimum_balance }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Типы топлива</h2>
+    <table>
+        <tr>
+            <th>Тип</th>
+            <th>Единица измерения</th>
+        </tr>
+        {% for fuel_type in fuel_types %}
+        <tr>
+            <td>{{ fuel_type.type }}</td>
+            <td>{{ fuel_type.unit }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Заказы</h2>
+    <table>
+        <tr>
+            <th>Дата</th>
+            <th>Топливо</th>
+            <th>Количество</th>
+            <th>Статус</th>
+        </tr>
+        {% for order in orders %}
+        <tr>
+            <td>{{ order.date }}</td>
+            <td>{{ order.fuel.fuel_type.type }} на АЗС {{ order.fuel.gas_station.name }}</td>
+            <td>{{ order.quantity }}</td>
+            <td>{{ order.status }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Продажи</h2>
+    <table>
+        <tr>
+            <th>Дата</th>
+            <th>Покупатель</th>
+            <th>Топливо</th>
+            <th>Количество топлива</th>
+            <th>Цена</th>
+        </tr>
+        {% for sale in sales %}
+        <tr>
+            <td>{{ sale.date }}</td>
+            <td>{{ sale.customer.full_name }}</td>
+            <td>{{ sale.fuel.fuel_type.type }} на АЗС {{ sale.fuel.gas_station.name }}</td>
+            <td>{{ sale.fuel_quantity }}</td>
+            <td>{{ sale.current_price }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
