@@ -10,19 +10,31 @@
         <button type="submit">Применить фильтр</button>
     </form>
 
-    <h2>1. Количество продаж по месяцам</h2>
-    {{ sales_over_time_plot|safe }}
+    {% if sales_over_time_plot %}
+        <h2>1. Количество продаж по месяцам</h2>
+        {{ sales_over_time_plot|safe }}
+    {% else %}
+        <p>Нет данных для отображения.</p>
+    {% endif %}
 
-    <h2>2. Объем продаж по видам топлива</h2>
-    {{ fuel_sales_by_type_plot|safe }}
+    {% if fuel_sales_by_type_plot %}
+        <h2>2. Объем продаж по видам топлива</h2>
+        {{ fuel_sales_by_type_plot|safe }}
+    {% endif %}
 
-    <h2>3. Объем продаж по заправочным станциям</h2>
-    {{ sales_by_station_plot|safe }}
+    {% if sales_by_station_plot %}
+        <h2>3. Объем продаж по заправочным станциям</h2>
+        {{ sales_by_station_plot|safe }}
+    {% endif %}
 
-    <h2>4. Суммарная выручка по видам топлива</h2>
-    {{ revenue_by_fuel_type_plot|safe }}
+    {% if revenue_by_fuel_type_plot %}
+        <h2>4. Суммарная выручка по видам топлива</h2>
+        {{ revenue_by_fuel_type_plot|safe }}
+    {% endif %}
 
-    <h2>5. Топ-5 клиентов по объему покупок</h2>
-    {{ top_customers_by_volume_plot|safe }}
+    {% if top_customers_by_volume_plot %}
+        <h2>5. Топ-5 клиентов по объему покупок</h2>
+        {{ top_customers_by_volume_plot|safe }}
+    {% endif %}
 
 {% endblock %}

@@ -17,6 +17,16 @@ from .forms import StatisticsForm
 from datetime import datetime, timedelta
 import plotly.express as px
 from plotly.offline import plot
+from django.shortcuts import render
+from django.apps import apps
+from django.db.models import Sum, Count, Avg, Q
+from django.db.models.functions import TruncMonth
+from django.utils import timezone
+from .forms import StatisticsForm
+from datetime import datetime, timedelta
+import plotly.express as px
+from plotly.offline import plot
+from time import sleep
 
 
 def tables_view(request):
@@ -61,12 +71,14 @@ def statistics_view(request):
     selected_fuel_type = None
     selected_customer = None
 
+    # Обрабатываем форму
     if form.is_valid():
-        start_date = form.cleaned_data["start_date"]
-        end_date = form.cleaned_data["end_date"]
-        selected_fuel_type = form.cleaned_data["fuel_type"]
-        selected_customer = form.cleaned_data["customer"]
+        start_date = form.cleaned_data.get("start_date", start_date)
+        end_date = form.cleaned_data.get("end_date", end_date)
+        selected_fuel_type = form.cleaned_data.get("fuel_type")
+        selected_customer = form.cleaned_data.get("customer")
 
+    # Фильтруем данные
     sales_query = Sale.objects.filter(date__range=[start_date, end_date])
 
     if selected_fuel_type:
@@ -75,75 +87,79 @@ def statistics_view(request):
     if selected_customer:
         sales_query = sales_query.filter(customer=selected_customer)
 
-    # 1. Количество продаж по месяцам (график)
-    sales_over_time = (
-        sales_query.annotate(month=TruncMonth("date"))
-        .values("month")
-        .annotate(total=Count("id"))
-        .order_by("month")
-    )
-    sales_over_time_fig = px.bar(
-        x=[s["month"] for s in sales_over_time],
-        y=[s["total"] for s in sales_over_time],
-        labels={"x": "Месяц", "y": "Количество продаж"},
-        title="Количество продаж по месяцам",
-    )
-    sales_over_time_plot = plot(sales_over_time_fig, output_type="div")
+    # Готовим данные для графиков, если есть продажи
+    sales_over_time_plot = fuel_sales_by_type_plot = sales_by_station_plot = revenue_by_fuel_type_plot = top_customers_by_volume_plot = None
 
-    # 2. Объем продаж по видам топлива (график)
-    fuel_sales_by_type = (
-        sales_query.values("fuel__fuel_type__type")
-        .annotate(total_sold=Sum("fuel_quantity"))
-        .order_by("-total_sold")
-    )
-    fuel_sales_by_type_fig = px.pie(
-        names=[f["fuel__fuel_type__type"] for f in fuel_sales_by_type],
-        values=[f["total_sold"] for f in fuel_sales_by_type],
-        title="Объем продаж по видам топлива",
-    )
-    fuel_sales_by_type_plot = plot(fuel_sales_by_type_fig, output_type="div")
+    if sales_query.exists():
+        # 1. Количество продаж по месяцам
+        sales_over_time = (
+            sales_query.annotate(month=TruncMonth("date"))
+            .values("month")
+            .annotate(total=Count("id"))
+            .order_by("month")
+        )
+        sales_over_time_fig = px.bar(
+            x=[s["month"] for s in sales_over_time],
+            y=[s["total"] for s in sales_over_time],
+            labels={"x": "Месяц", "y": "Количество продаж"},
+            title="Количество продаж по месяцам",
+        )
+        sales_over_time_plot = plot(sales_over_time_fig, output_type="div")
 
-    # 3. Объем продаж по заправочным станциям (график)
-    sales_by_station = (
-        sales_query.values("fuel__gas_station__name")
-        .annotate(total_sold=Sum("fuel_quantity"))
-        .order_by("-total_sold")
-    )
-    sales_by_station_fig = px.bar(
-        x=[s["fuel__gas_station__name"] for s in sales_by_station],
-        y=[s["total_sold"] for s in sales_by_station],
-        labels={"x": "Заправочная станция", "y": "Объем продаж"},
-        title="Объем продаж по заправочным станциям",
-    )
-    sales_by_station_plot = plot(sales_by_station_fig, output_type="div")
+        # 2. Объем продаж по видам топлива
+        fuel_sales_by_type = (
+            sales_query.values("fuel__fuel_type__type")
+            .annotate(total_sold=Sum("fuel_quantity"))
+            .order_by("-total_sold")
+        )
+        fuel_sales_by_type_fig = px.pie(
+            names=[f["fuel__fuel_type__type"] for f in fuel_sales_by_type],
+            values=[f["total_sold"] for f in fuel_sales_by_type],
+            title="Объем продаж по видам топлива",
+        )
+        fuel_sales_by_type_plot = plot(fuel_sales_by_type_fig, output_type="div")
 
-    # 4. Суммарная выручка по видам топлива (график)
-    revenue_by_fuel_type = (
-        sales_query.values("fuel__fuel_type__type")
-        .annotate(total_revenue=Sum("fuel_quantity") * Avg("current_price"))
-        .order_by("-total_revenue")
-    )
-    revenue_by_fuel_type_fig = px.bar(
-        x=[f["fuel__fuel_type__type"] for f in revenue_by_fuel_type],
-        y=[f["total_revenue"] for f in revenue_by_fuel_type],
-        labels={"x": "Тип топлива", "y": "Выручка"},
-        title="Суммарная выручка по видам топлива",
-    )
-    revenue_by_fuel_type_plot = plot(revenue_by_fuel_type_fig, output_type="div")
+        # 3. Объем продаж по заправочным станциям
+        sales_by_station = (
+            sales_query.values("fuel__gas_station__name")
+            .annotate(total_sold=Sum("fuel_quantity"))
+            .order_by("-total_sold")
+        )
+        sales_by_station_fig = px.bar(
+            x=[s["fuel__gas_station__name"] for s in sales_by_station],
+            y=[s["total_sold"] for s in sales_by_station],
+            labels={"x": "Заправочная станция", "y": "Объем продаж"},
+            title="Объем продаж по заправочным станциям",
+        )
+        sales_by_station_plot = plot(sales_by_station_fig, output_type="div")
 
-    # 5. Топ-5 клиентов по объему покупок (график)
-    top_customers_by_volume = (
-        sales_query.values("customer__full_name")
-        .annotate(total_volume=Sum("fuel_quantity"))
-        .order_by("-total_volume")[:5]
-    )
-    top_customers_by_volume_fig = px.bar(
-        x=[c["customer__full_name"] for c in top_customers_by_volume],
-        y=[c["total_volume"] for c in top_customers_by_volume],
-        labels={"x": "Клиент", "y": "Объем покупок"},
-        title="Топ-5 клиентов по объему покупок",
-    )
-    top_customers_by_volume_plot = plot(top_customers_by_volume_fig, output_type="div")
+        # 4. Суммарная выручка по видам топлива
+        revenue_by_fuel_type = (
+            sales_query.values("fuel__fuel_type__type")
+            .annotate(total_revenue=Sum("fuel_quantity") * Avg("current_price"))
+            .order_by("-total_revenue")
+        )
+        revenue_by_fuel_type_fig = px.bar(
+            x=[f["fuel__fuel_type__type"] for f in revenue_by_fuel_type],
+            y=[f["total_revenue"] for f in revenue_by_fuel_type],
+            labels={"x": "Тип топлива", "y": "Выручка"},
+            title="Суммарная выручка по видам топлива",
+        )
+        revenue_by_fuel_type_plot = plot(revenue_by_fuel_type_fig, output_type="div")
+
+        # 5. Топ-5 клиентов по объему покупок
+        top_customers_by_volume = (
+            sales_query.values("customer__full_name")
+            .annotate(total_volume=Sum("fuel_quantity"))
+            .order_by("-total_volume")[:5]
+        )
+        top_customers_by_volume_fig = px.bar(
+            x=[c["customer__full_name"] for c in top_customers_by_volume],
+            y=[c["total_volume"] for c in top_customers_by_volume],
+            labels={"x": "Клиент", "y": "Объем покупок"},
+            title="Топ-5 клиентов по объему покупок",
+        )
+        top_customers_by_volume_plot = plot(top_customers_by_volume_fig, output_type="div")
 
     context = {
         "form": form,
