@@ -10,31 +10,90 @@
         <button type="submit">Применить фильтр</button>
     </form>
 
-    {% if sales_over_time_plot %}
-        <h2>1. Количество продаж по месяцам</h2>
-        {{ sales_over_time_plot|safe }}
-    {% else %}
-        <p>Нет данных для отображения.</p>
-    {% endif %}
+    <h2>1. Количество продаж по месяцам</h2>
+    <table border="1">
+        <tr>
+            <th>Месяц</th>
+            <th>Количество продаж</th>
+        </tr>
+        {% for sale in sales_over_time %}
+        <tr>
+            <td>{{ sale.month }}</td>
+            <td>{{ sale.total }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 
-    {% if fuel_sales_by_type_plot %}
-        <h2>2. Объем продаж по видам топлива</h2>
-        {{ fuel_sales_by_type_plot|safe }}
-    {% endif %}
+    <h2>2. Объем продаж по видам топлива</h2>
+    <table border="1">
+        <tr>
+            <th>Тип топлива</th>
+            <th>Объем продаж</th>
+        </tr>
+        {% for fuel in fuel_sales_by_type %}
+        <tr>
+            <td>{{ fuel.fuel__fuel_type__type }}</td>
+            <td>{{ fuel.total_sold }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 
-    {% if sales_by_station_plot %}
-        <h2>3. Объем продаж по заправочным станциям</h2>
-        {{ sales_by_station_plot|safe }}
-    {% endif %}
+    <h2>3. Объем продаж по заправочным станциям</h2>
+    <table border="1">
+        <tr>
+            <th>Заправочная станция</th>
+            <th>Объем продаж</th>
+        </tr>
+        {% for station in sales_by_station %}
+        <tr>
+            <td>{{ station.fuel__gas_station__name }}</td>
+            <td>{{ station.total_sold }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 
-    {% if revenue_by_fuel_type_plot %}
-        <h2>4. Суммарная выручка по видам топлива</h2>
-        {{ revenue_by_fuel_type_plot|safe }}
-    {% endif %}
+    <h2>4. Суммарная выручка по видам топлива</h2>
+    <table border="1">
+        <tr>
+            <th>Тип топлива</th>
+            <th>Суммарная выручка</th>
+        </tr>
+        {% for revenue in revenue_by_fuel_type %}
+        <tr>
+            <td>{{ revenue.fuel__fuel_type__type }}</td>
+            <td>{{ revenue.total_revenue }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 
-    {% if top_customers_by_volume_plot %}
-        <h2>5. Топ-5 клиентов по объему покупок</h2>
-        {{ top_customers_by_volume_plot|safe }}
-    {% endif %}
+    <h2>5. Топ-5 клиентов по объему покупок</h2>
+    <table border="1">
+        <tr>
+            <th>Клиент</th>
+            <th>Объем покупок</th>
+        </tr>
+        {% for customer in top_customers_by_volume %}
+        <tr>
+            <td>{{ customer.customer__full_name }}</td>
+            <td>{{ customer.total_volume }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 
+    <h2>6. Средняя выручка за одну продажу</h2>
+    <p>{{ avg_revenue_per_sale }}</p>
+
+    <h2>7. Анализ продаж по фирме-производителю за последний год</h2>
+    <table border="1">
+        <tr>
+            <th>Компания</th>
+            <th>Объем продаж</th>
+        </tr>
+        {% for company in sales_by_company_last_year %}
+        <tr>
+            <td>{{ company.name }}</td>
+            <td>{{ company.total_sold }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 {% endblock %}
